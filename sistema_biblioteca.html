@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .fade-enter { opacity: 0; transform: translateY(10px); }
+    .fade-enter-active { opacity: 1; transform: translateY(0); transition: all 0.4s ease; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-100 via-blue-100 to-purple-100 font-sans">
+
+<div class="flex min-h-screen">
+
+  <aside class="w-64 bg-gradient-to-b from-indigo-600 to-purple-600 text-white shadow-xl flex flex-col">
+    <div class="p-6 text-2xl font-bold border-b border-white/20 flex items-center gap-2">
+      📚 Biblioteca
+    </div>
+
+    <nav class="flex-1 p-4 space-y-2">
+      <button onclick="mostrarSecao('usuarios')" class="flex items-center gap-2 w-full p-3 rounded-xl hover:bg-white/20 transition">
+        <i data-lucide="users"></i> Usuários
+      </button>
+      <button onclick="mostrarSecao('livros')" class="flex items-center gap-2 w-full p-3 rounded-xl hover:bg-white/20 transition">
+        <i data-lucide="book"></i> Livros
+      </button>
+      <button onclick="mostrarSecao('acoes')" class="flex items-center gap-2 w-full p-3 rounded-xl hover:bg-white/20 transition">
+        <i data-lucide="settings"></i> Ações
+      </button>
+    </nav>
+  </aside>
+
+  <main class="flex-1 p-6">
+
+    <div class="mb-6 flex justify-between items-center">
+      <h1 id="tituloPrincipal" class="text-3xl font-bold text-gray-800">Menu Biblioteca</h1>
+    </div>
+
+    <section id="usuarios" class="secao fade-enter">
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <div class="bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-6 rounded-2xl shadow">
+          <h2 class="text-xl font-semibold mb-4">Usuários Cadastrados</h2>
+          <ul id="listaUsuarios" class="space-y-2"></ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow border-l-4 border-blue-500">
+          <h2 class="text-xl font-semibold mb-4 text-blue-600">Novo Usuário</h2>
+          <input id="novoUsuario" type="text" placeholder="Nome do Aluno/Leitor" class="p-2 border rounded w-full">
+          <button onclick="cadastrarUsuario()" class="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl w-full transition">Cadastrar</button>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="livros" class="secao hidden fade-enter">
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <div class="bg-gradient-to-br from-green-500 to-emerald-500 text-white p-6 rounded-2xl shadow">
+          <h2 class="text-xl font-semibold mb-4">Acervo de Livros</h2>
+          <ul id="listaLivros" class="space-y-2"></ul>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow border-l-4 border-green-500">
+          <h2 class="text-xl font-semibold mb-4 text-green-600">Cadastrar Livro</h2>
+          <input id="novoLivro" type="text" placeholder="Título do Livro" class="p-2 border rounded w-full">
+          <button onclick="cadastrarLivro()" class="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl w-full transition">Cadastrar</button>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="acoes" class="secao hidden fade-enter">
+      <div class="bg-white p-6 rounded-2xl shadow max-w-xl border-l-4 border-yellow-500">
+        <h2 class="text-xl font-semibold mb-4 text-yellow-600">Empréstimos e Devoluções</h2>
+
+        <div class="space-y-3">
+            <input id="idUsuario" placeholder="ID do Usuário" class="p-2 border rounded w-full">
+            <input id="idLivro" placeholder="ID do Livro" class="p-2 border rounded w-full">
+        </div>
+
+        <div class="flex gap-2 mt-4">
+          <button onclick="emprestarLivro()" class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-xl transition">Emprestar</button>
+          <button onclick="devolverLivro()" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl transition">Devolver</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+lucide.createIcons();
+
+// Dados iniciais
+let usuarios = {
+  "1": {"nome": "Matheus"},
+  "2": {"nome": "Carlos"},
+  "3": {"nome": "Paulo"},
+  "4": {"nome": "Felipe"},
+  "5": {"nome": "Agnaldo"},
+};
+
+let livros = {
+  "1": {"nome": "Dom Quixote", "emprestado": null},
+  "2": {"nome": "Os Lusíadas", "emprestado": null},
+  "3": {"nome": "Guerra e Paz", "emprestado": null},
+  "4": {"nome": "Crime e Castigo", "emprestado": null},
+  "5": {"nome": "A Divina Comédia", "emprestado": null},
+};
+
+function animar(secao) {
+  secao.classList.remove('fade-enter');
+  void secao.offsetWidth; // Trigger reflow
+  secao.classList.add('fade-enter-active');
+}
+
+function mostrarSecao(id) {
+  // Esconder todas
+  document.querySelectorAll('.secao').forEach(s => {
+    s.classList.add('hidden');
+    s.classList.remove('fade-enter-active');
+  });
+
+  // Mostrar a selecionada
+  const secao = document.getElementById(id);
+  secao.classList.remove('hidden');
+  animar(secao);
+}
+
+function notificar(msg, tipo='info') {
+  const div = document.createElement('div');
+  const cores = { info:'bg-blue-500', sucesso:'bg-green-500', erro:'bg-red-500' };
+  div.className = `${cores[tipo]} text-white px-6 py-3 rounded-2xl fixed top-5 right-5 shadow-2xl z-50 transition-all`;
+  div.innerText = msg;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2500);
+}
+
+function render() {
+  const u = document.getElementById('listaUsuarios');
+  const l = document.getElementById('listaLivros');
+  u.innerHTML = '';
+  l.innerHTML = '';
+
+  for (let id in usuarios) {
+    u.innerHTML += `<li class="bg-white/10 p-2 rounded-lg border border-white/10">ID: <strong>${id}</strong> - ${usuarios[id].nome}</li>`;
+  }
+
+  for (let id in livros) {
+    let status = '🟢 Disponível';
+    let cor = 'text-green-100';
+
+    if (livros[id].emprestado) {
+      let nome = usuarios[livros[id].emprestado] ? usuarios[livros[id].emprestado].nome : 'Usuário Removido';
+      status = `🔴 Emprestado para ${nome}`;
+      cor = 'text-red-100';
+    }
+
+    l.innerHTML += `<li class="bg-white/10 p-2 rounded-lg border border-white/10">
+      ID: <strong>${id}</strong> - ${livros[id].nome}<br>
+      <span class="text-xs font-semibold ${cor}">${status}</span>
+    </li>`;
+  }
+}
+
+function cadastrarUsuario() {
+  const nome = document.getElementById('novoUsuario').value;
+  if (!nome) return notificar('Digite um nome','erro');
+
+  const proximoId = (Math.max(...Object.keys(usuarios).map(Number), 0) + 1).toString();
+  usuarios[proximoId] = {nome};
+
+  document.getElementById('novoUsuario').value='';
+  render();
+  notificar('Usuário cadastrado com sucesso!','sucesso');
+}
+
+function cadastrarLivro() {
+  const nome = document.getElementById('novoLivro').value;
+  if (!nome) return notificar('Digite o nome do livro','erro');
+
+  const proximoId = (Math.max(...Object.keys(livros).map(Number), 0) + 1).toString();
+  livros[proximoId] = {nome, emprestado: null};
+
+  document.getElementById('novoLivro').value='';
+  render();
+  notificar('Livro adicionado ao acervo!','sucesso');
+}
+
+function emprestarLivro() {
+  const u = document.getElementById('idUsuario').value;
+  const l = document.getElementById('idLivro').value;
+
+  if (!usuarios[u]) return notificar('Usuário não encontrado','erro');
+  if (!livros[l]) return notificar('Livro não encontrado','erro');
+  if (livros[l].emprestado) return notificar('Este livro já está emprestado','erro');
+
+  livros[l].emprestado = u;
+  render();
+  notificar('Empréstimo realizado!','sucesso');
+}
+
+function devolverLivro() {
+  const l = document.getElementById('idLivro').value;
+
+  if (!livros[l]) return notificar('Livro não encontrado','erro');
+  if (!livros[l].emprestado) return notificar('Este livro já está na biblioteca','erro');
+
+  livros[l].emprestado = null;
+  render();
+  notificar('Devolução concluída!','sucesso');
+}
+
+// Inicialização
+render();
+</script>
+
+</body>
+</html>
